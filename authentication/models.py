@@ -32,31 +32,37 @@ class CustomUserManager(BaseUserManager):
         user.save()
         return user
 
-
 class User(AbstractBaseUser, PermissionsMixin):
     user_id = models.AutoField(primary_key=True)
     email = models.EmailField(max_length=100, unique=True)
-    # username = models.CharField(max_length=100)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateField(auto_now_add=True)
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     is_onboarded = models.BooleanField(default=False)
+    buddyships = models.ManyToManyField('self', through='Buddyship',
+                                           symmetrical=False,
+                                           related_name='related_to+')
     USERNAME_FIELD = 'email'
-    # REQUIRED_FIELDS = ['username']
     objects = CustomUserManager()
 
     def __str__(self):
         return self.email
-
-# class Profile(models.Model):
-#     user = models.OneToOneField(User, on_delete=models.CASCADE) 
-#     first_name = models.CharField(max_length=30)
-#     last_name = models.CharField(max_length=30)
-#     is_onboarded = models.BooleanField(default=False)
-#     def __str__(self):
-#          return f'{self.user.email} Profile' 
-
-        
     
+    def add_buddyship(self, user, symm=True):
+        buddyship, create = Buddyship.objects.get_or_create(
+            from_person = self,
+            to_person = user
+        )
+        if symm:
+            user.add_buddyship(self, False)
+    
+    def get_relationships(self):
+        return self.buddyships.filter(
+            to_people__from_person=self)
+
+class Buddyship(models.Model):
+    from_person = models.ForeignKey(User, related_name='from_people', on_delete=models.CASCADE)
+    to_person = models.ForeignKey(User, related_name='to_people', on_delete=models.CASCADE)
+
