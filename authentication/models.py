@@ -58,7 +58,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         if symm:
             user.add_buddyship(self, False)
     
-    def get_relationships(self):
+    def get_buddyships(self):
         return self.buddyships.filter(
             to_people__from_person=self)
 
