@@ -20,6 +20,7 @@ class UserRegistrationAPIView(APIView):
 	serializer_class = UserRegistrationSerializer
 	authentication_classes = (TokenAuthentication,)
 	permission_classes = (AllowAny,)
+	print("This is the register api")
 
 	def get(self, request):
 		content = { 'message': 'Hello!' }
@@ -31,7 +32,13 @@ class UserRegistrationAPIView(APIView):
 			new_user = serializer.save()
 			if new_user:
 				access_token = generate_access_token(new_user)
-				data = { 'access_token': access_token }
+				user = {
+				'first_name' : new_user.first_name,
+				'last_name' : new_user.last_name,
+				'email' : new_user.email,
+				'is_onboarded' : new_user.is_onboarded
+				}
+				data = { 'access_token': access_token, 'user' : user }
 				response = Response(data, status=status.HTTP_201_CREATED)
 				response.set_cookie(key='access_token', value=access_token, httponly=True)
 				return response
@@ -61,11 +68,15 @@ class UserLoginAPIView(APIView):
 
 		if user_instance.is_active:
 			user_access_token = generate_access_token(user_instance)
-			response = Response()
+			user = {
+				'first_name' : user_instance.first_name,
+				'last_name' : user_instance.last_name,
+				'email' : user_instance.email,
+				'is_onboarded' : user_instance.is_onboarded
+				}
+			data = { 'access_token': user_access_token, 'user' : user }
+			response = Response(data, status=status.HTTP_202_ACCEPTED)
 			response.set_cookie(key='access_token', value=user_access_token, httponly=True)
-			response.data = {
-				'access_token': user_access_token
-			}
 			return response
 
 		return Response({

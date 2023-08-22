@@ -12,6 +12,8 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 		user_password = validated_data.get('password', None)
 		db_instance = self.Meta.model(email=validated_data.get('email'))
 		db_instance.set_password(user_password)
+		db_instance.first_name = validated_data.get('first_name', None)
+		db_instance.last_name = validated_data.get('last_name', None)
 		db_instance.save()
 		return db_instance
 	
