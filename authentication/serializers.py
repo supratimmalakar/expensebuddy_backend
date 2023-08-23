@@ -6,7 +6,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 	password = serializers.CharField(max_length=100, min_length=8, style={'input_type': 'password'})
 	class Meta:
 		model = get_user_model()
-		fields = ['email', 'password', 'first_name', 'last_name', 'is_onboarded']
+		fields = ['email', 'password', 'first_name', 'last_name', 'is_onboarded', 'phone_number']
 
 	def create(self, validated_data):
 		user_password = validated_data.get('password', None)
@@ -14,6 +14,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 		db_instance.set_password(user_password)
 		db_instance.first_name = validated_data.get('first_name', None)
 		db_instance.last_name = validated_data.get('last_name', None)
+		db_instance.phone_number = validated_data.get('phone_number', None)
 		db_instance.save()
 		return db_instance
 	
@@ -21,6 +22,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 		instance.first_name = validated_data.get('first_name', instance.first_name)
 		instance.last_name = validated_data.get('last_name', instance.last_name)
 		instance.is_onboarded = validated_data.get('is_onboarded', instance.is_onboarded)
+		instance.phone_number = instance.phone_number = validated_data.get('phone_number', instance.phone_number)
 		instance.email = validated_data.get('email', instance.email)
 		instance.save()
 		return instance

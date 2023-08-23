@@ -12,7 +12,7 @@ from django.contrib.auth import get_user_model
 from .utils import generate_access_token
 import jwt, json
 from rest_framework import status
-from django.core import serializers
+from rest_framework import serializers
 
 
 # Create your views here.
@@ -28,21 +28,17 @@ class UserRegistrationAPIView(APIView):
 
 	def post(self, request):
 		serializer = self.serializer_class(data=request.data)
-		if serializer.is_valid(raise_exception=True):
-			new_user = serializer.save()
-			if new_user:
-				access_token = generate_access_token(new_user)
-				user = {
-				'first_name' : new_user.first_name,
-				'last_name' : new_user.last_name,
-				'email' : new_user.email,
-				'is_onboarded' : new_user.is_onboarded
-				}
-				data = { 'access_token': access_token, 'user' : user }
-				response = Response(data, status=status.HTTP_201_CREATED)
-				response.set_cookie(key='access_token', value=access_token, httponly=True)
-				return response
-		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+		try:
+			if serializer.is_valid(raise_exception=True):
+				new_user = serializer.save()
+				if new_user:
+					access_token = generate_access_token(new_user)
+					data = { 'access_token': access_token }
+					response = Response(data, status=status.HTTP_201_CREATED)
+					return response
+		except Exception as error:
+			print("serializer errors", error.get_full_details())
+			return Response(error.get_full_details(), status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -64,7 +60,7 @@ class UserLoginAPIView(APIView):
 		user_instance = authenticate(username=email, password=user_password)
 
 		if not user_instance:
-			raise AuthenticationFailed('User not found.')
+			return Response(data = {'message': 'Credentials not correct'}, status=status.HTTP_404_NOT_FOUND)
 
 		if user_instance.is_active:
 			user_access_token = generate_access_token(user_instance)
@@ -79,9 +75,7 @@ class UserLoginAPIView(APIView):
 			response.set_cookie(key='access_token', value=user_access_token, httponly=True)
 			return response
 
-		return Response({
-			'message': 'Something went wrong.'
-		})
+		
 
 
 
