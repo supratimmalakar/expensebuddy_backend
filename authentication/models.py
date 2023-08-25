@@ -67,6 +67,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 class Buddy(models.Model):
     contact_name = models.CharField(max_length=50)
     phone_number = models.CharField(max_length=15, unique=True)
+    unregistered = models.BooleanField(default=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="buddies", default=None)
 
 class Buddyship(models.Model):
