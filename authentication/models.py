@@ -42,6 +42,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=30)
     is_onboarded = models.BooleanField(default=False)
     phone_number = models.CharField(max_length=15, unique=True)
+    contact_count = models.IntegerField(default=0)
     buddyships = models.ManyToManyField('self', through='Buddyship',
                                            symmetrical=False,
                                            related_name='related_to+')
@@ -62,6 +63,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_buddyships(self):
         return self.buddyships.filter(
             to_people__from_person=self)
+    
+class Buddy(models.Model):
+    contact_name = models.CharField(max_length=50)
+    phone_number = models.CharField(max_length=15, unique=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="buddies", default=None)
 
 class Buddyship(models.Model):
     from_person = models.ForeignKey(User, related_name='from_people', on_delete=models.CASCADE)

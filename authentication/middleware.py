@@ -7,10 +7,8 @@ from rest_framework.response import Response
 
 class AuthMiddleware(MiddlewareMixin):
     def process_request(self, request):
-        print("api/user" in request.get_full_path())
         if "api/user" in request.get_full_path():
-            print("protected route")
-            user_token = request.COOKIES.get('access_token')
+            user_token = request.META['HTTP_AUTHORIZATION']
             if not user_token:
                 raise AuthenticationFailed('Unauthenticated user.')
             if user_token:
@@ -23,7 +21,6 @@ class AuthMiddleware(MiddlewareMixin):
                 except (jwt.DecodeError, jwt.InvalidTokenError):
                     return Response(data = {"message": "Authorization has failed"}, status = status.HTTP_401_UNAUTHORIZED)
         else:
-            print("unprotected route")
             return None
         
 # user_token = request.COOKIES.get('access_token')

@@ -13,6 +13,8 @@ from .utils import generate_access_token
 import jwt, json
 from rest_framework import status
 from rest_framework import serializers
+from .utils import get_user_obj
+from .models import Buddy
 
 
 # Create your views here.
@@ -20,7 +22,6 @@ class UserRegistrationAPIView(APIView):
 	serializer_class = UserRegistrationSerializer
 	authentication_classes = (TokenAuthentication,)
 	permission_classes = (AllowAny,)
-	print("This is the register api")
 
 	def get(self, request):
 		content = { 'message': 'Hello!' }
@@ -37,7 +38,6 @@ class UserRegistrationAPIView(APIView):
 					response = Response(data, status=status.HTTP_201_CREATED)
 					return response
 		except Exception as error:
-			print("serializer errors", error.get_full_details())
 			return Response(error.get_full_details(), status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -64,19 +64,31 @@ class UserLoginAPIView(APIView):
 
 		if user_instance.is_active:
 			user_access_token = generate_access_token(user_instance)
-			user = {
-				'first_name' : user_instance.first_name,
-				'last_name' : user_instance.last_name,
-				'email' : user_instance.email,
-				'is_onboarded' : user_instance.is_onboarded
-				}
+			user = get_user_obj(user_instance)
 			data = { 'access_token': user_access_token, 'user' : user }
 			response = Response(data, status=status.HTTP_202_ACCEPTED)
 			response.set_cookie(key='access_token', value=user_access_token, httponly=True)
 			return response
 
-		
 
+class SetContactAPI(APIView):
+	def post(self, request):
+		user_id = request.user_id
+		user_model = get_user_model()
+		user = user_model.objects.get(user_id=user_id)
+		contacts = request.data['contacts']
+		for contact in contacts:
+			if user_model.objects.filter(phone_number = contact['phone_number']).exists():
+				if user.buddies.filter(phone_number = contact['phone_number']).exists():
+					existing_buddy = user.buddies.get(phone_number = contact['phone_number'])
+					if existing_buddy.contact_name != contact['contact_name']:
+						existing_buddy.contact_name =contact['contact_name']
+						existing_buddy.save()
+				else:
+					buddy = Buddy(contact_name = contact['contact_name'], phone_number = contact['phone_number'], user = user)
+					buddy.save()
+		user_obj = get_user_obj(user)
+		return Response(data = user_obj, status = status.HTTP_200_OK)
 
 
 class UserViewAPI(APIView):
@@ -111,15 +123,9 @@ class UserDataUpdateViewAPI(APIView):
 			setattr(user, field, request.data[field])
 		try:
 			user.save()
-			data = {
-				'email' : user.email,
-				'first_name': user.first_name,
-				'last_name': user.last_name,
-				'is_onboarded': user.is_onboarded
-			}
+			data = get_user_obj(user)
 			return Response(data = data, status = status.HTTP_201_CREATED)
 		except Exception as error:
-			print("error ",error)
 			return Response(data = {"message": "Fields were not updated"}, status = status.HTTP_400_BAD_REQUEST)
 		
 				
