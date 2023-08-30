@@ -79,13 +79,14 @@ class SetContactAPI(APIView):
 		contacts = request.data['contacts']
 		for contact in contacts:
 			if user_model.objects.filter(phone_number = contact['phone_number']).exists():
+				contact_user = user_model.objects.get(phone_number = contact['phone_number'])
 				if user.buddies.filter(phone_number = contact['phone_number']).exists():
 					existing_buddy = user.buddies.get(phone_number = contact['phone_number'])
 					if existing_buddy.contact_name != contact['contact_name']:
 						existing_buddy.contact_name =contact['contact_name']
 						existing_buddy.save()
 				else:
-					buddy = Buddy(contact_name = contact['contact_name'], phone_number = contact['phone_number'], user = user)
+					buddy = Buddy(contact_name = contact['contact_name'], phone_number = contact['phone_number'], contact_user_id = contact_user.user_id , user = user)
 					buddy.save()
 		user_obj = get_user_obj(user)
 		return Response(data = user_obj, status = status.HTTP_200_OK)
@@ -99,8 +100,8 @@ class UserViewAPI(APIView):
 		user_id = request.user_id
 		user_model = get_user_model()
 		user = user_model.objects.get(user_id=user_id)
-		user_serializer = UserRegistrationSerializer(user)
-		return Response(user_serializer.data)
+		user_obj = get_user_obj(user)
+		return Response(user_obj, status= status.HTTP_200_OK)
 	
 # check logic
 # class UserProfileUpdateViewAPI(APIView):

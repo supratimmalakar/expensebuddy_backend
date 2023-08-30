@@ -68,7 +68,8 @@ class Buddy(models.Model):
     contact_name = models.CharField(max_length=50)
     phone_number = models.CharField(max_length=15, unique=True)
     unregistered = models.BooleanField(default=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="buddies", default=None)
+    contact_user_id = models.IntegerField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="buddies", default=None) ##defines which users buddy is this buddy instance
 
 class Buddyship(models.Model):
     from_person = models.ForeignKey(User, related_name='from_people', on_delete=models.CASCADE)

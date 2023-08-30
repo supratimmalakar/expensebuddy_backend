@@ -16,7 +16,7 @@ def generate_access_token(user):
 def get_user_obj(user_instance):
 	buddies = []
 	for buddy in user_instance.buddies.all():
-		buddies.append({'contact_name' : buddy.contact_name, 'phone_number' : buddy.phone_number })
+		buddies.append({'contact_name' : buddy.contact_name, 'phone_number' : buddy.phone_number, 'contact_user_id' : buddy.contact_user_id })
 	data = {
 				'email' : user_instance.email,
 				'first_name': user_instance.first_name,
@@ -25,5 +25,6 @@ def get_user_obj(user_instance):
 				'contact_count': user_instance.contact_count,
 				'phone_number': user_instance.phone_number,
 				'buddies': buddies,
+				'id' : user_instance.user_id,
 			}
 	return data
